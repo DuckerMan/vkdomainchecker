@@ -1,10 +1,12 @@
-use tokio::prelude::*;
 #[macro_use]
 extern crate vkapi;
 
-use std::sync::Arc;
+use tokio::prelude::*;
 use tokio::sync::Mutex;
 
+use std::sync::Arc;
+
+const FORBIDDEN: &[&str] = &["club", "public", "settings"]; // TODO: запрещенные логины, скорее всего они не все
 #[tokio::main]
 async fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -28,8 +30,11 @@ async fn main() {
 
     for name in names {
         let name = name.replace("\r", ""); // на Windows помимо \n нужно убирать еще и \r
+        if FORBIDDEN.contains(&name.as_str()) || name.len() <= 4{
+            continue;
+        }
+        
         let vkapi_cloned = vk_api.clone();
-
         tasks.push(tokio::spawn(async move {
             let mut response = vkapi_cloned
                 .lock()
